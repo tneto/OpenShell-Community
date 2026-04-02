@@ -106,6 +106,25 @@ openshell sandbox create \
 
 Then open **`http://localhost:6080/index.html`** (or **`http://127.0.0.1:6080/index.html`**).
 
+### Forward reliability (important)
+
+Use **one** `openshell forward` process per local port. Multiple forwards/watchdog loops fighting
+for `6080` can leave the tunnel in a dead/flapping state and noVNC may stall at **"Connecting..."**.
+
+Recommended recovery sequence:
+
+```bash
+# Stop any stale forward entries
+openshell forward stop 6080 || true
+
+# If port 6080 is still held by a stray local ssh process, free it
+lsof -i :6080 -sTCP:LISTEN
+kill <PID>
+
+# Start one clean forward
+openshell forward start 6080 cursor-desktop
+```
+
 Stream logs while tightening policy (sandbox name defaults to last-used if omitted):
 
 ```bash
@@ -213,6 +232,10 @@ openshell logs --tail
 # Hot-reload an updated policy without restarting the sandbox:
 openshell policy set ./sandboxes/cursor-desktop/policy.yaml
 ```
+
+> **Important:** OpenShell treats `filesystem_policy` as **static** (creation-time). If you add
+> required paths (for example `/opt/google` or `/dev/shm` for Chrome/Electron behavior), recreate
+> the sandbox so Landlock path rules are reapplied from boot.
 
 To enable git push to GitHub, uncomment and scope the `git-receive-pack` rule in
 `policy.yaml` to your specific repository.

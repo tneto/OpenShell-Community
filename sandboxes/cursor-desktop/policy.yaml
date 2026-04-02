@@ -16,10 +16,15 @@ filesystem_policy:
     - /var/log
     - /app
     - /opt/Cursor
+    # Google Chrome .deb installs under /opt/google/chrome; Landlock denies
+    # unlisted paths, so Chrome cannot start without read access here.
+    - /opt/google
   read_write:
     - /sandbox
     - /tmp
     - /dev/null
+    # Chrome uses /dev/shm for shared memory; without it, startup can fail or hang.
+    - /dev/shm
 
 landlock:
   compatibility: best_effort
@@ -53,6 +58,7 @@ network_policies:
       - { host: cursor.com,                          port: 443 }
       - { host: www.cursor.com,                      port: 443 }
       - { host: api2.cursor.sh,                      port: 443 }
+      - { host: api3.cursor.sh,                      port: 443 }
       - { host: api.cursor.sh,                       port: 443 }
       - { host: cursor.so,                           port: 443 }
       - { host: cursor.blob.core.windows.net,        port: 443 }
@@ -61,8 +67,35 @@ network_policies:
       - { host: cursor.download.prss.microsoft.com,  port: 443 }
     binaries:
       - { path: /usr/bin/cursor }
+      - { path: /usr/share/cursor/cursor }
+      - { path: "/usr/share/cursor/**" }
       - { path: /opt/Cursor/cursor }
       - { path: "/opt/Cursor/**" }
+
+  # Browser-based OAuth / sign-in flows.
+  #
+  # NOTE: "audit" here is about request-level inspection (when protocol: rest is set).
+  # The CONNECT allowlist is still enforced at the (binary, host:port) level, so we
+  # enumerate common auth endpoints up front and then promote additional hosts
+  # observed in `openshell logs` during sign-in.
+  browser_auth_audit:
+    name: browser-auth-audit
+    endpoints:
+      - { host: cursor.com,                         port: 443 }
+      - { host: www.cursor.com,                     port: 443 }
+      - { host: accounts.google.com,                port: 443 }
+      - { host: oauth2.googleapis.com,              port: 443 }
+      - { host: login.microsoftonline.com,          port: 443 }
+      - { host: device.login.microsoftonline.com,  port: 443 }
+      - { host: github.com,                         port: 443 }
+      - { host: api.github.com,                     port: 443 }
+      # Cursor (Electron) may emit telemetry via this host.
+      - { host: mobile.events.data.microsoft.com,   port: 443 }
+    binaries:
+      - { path: /usr/bin/google-chrome }
+      - { path: /usr/bin/google-chrome-stable }
+      - { path: /opt/google/chrome/chrome }
+      - { path: "/opt/google/chrome/**" }
 
   # Git operations over HTTPS.
   # Write rules (git-receive-pack) are commented out for least-privilege defaults.

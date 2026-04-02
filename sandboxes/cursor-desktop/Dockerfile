@@ -57,7 +57,7 @@ RUN apt-get update && \
         libdrm2 libglib2.0-0 libatk1.0-0 libatk-bridge2.0-0 libxkbcommon0 \
         libsecret-1-0 \
         fonts-dejavu fonts-noto-color-emoji \
-        procps net-tools iproute2 python3 python3-xdg \
+        procps net-tools iproute2 iptables libnss3-tools python3 python3-xdg \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Browser ────────────────────────────────────────────────────────────────────
@@ -129,11 +129,12 @@ RUN ARCH=$(dpkg --print-architecture) && \
     update-alternatives --install /usr/bin/x-www-browser x-www-browser \
         "$BROWSER_BIN" 200 && \
     update-alternatives --set x-www-browser "$BROWSER_BIN" && \
-    printf "#!/bin/sh\nexec %s \"\$@\"\n" "$BROWSER_BIN" > /usr/local/bin/xdg-open && \
+    # Wrap xdg-open so we can debug whether Cursor triggers it for OAuth.
+    # Keep the wrapper simple: log arguments then exec the chosen browser.
+    printf '#!/bin/sh\nprintf "%%s xdg-open %%s\\n" "$(date -Iseconds)" "$*" >>/tmp/xdg-open.log\nexec '"$BROWSER_BIN"' "$@"\n' > /usr/local/bin/xdg-open && \
     chmod +x /usr/local/bin/xdg-open && \
     mv /usr/bin/xdg-open /usr/bin/xdg-open.real && \
-    printf "#!/bin/sh\nexec %s \"\$@\"\n" "$BROWSER_BIN" > /usr/bin/xdg-open && \
-    chmod +x /usr/bin/xdg-open && \
+    ln -sf /usr/local/bin/xdg-open /usr/bin/xdg-open && \
     mkdir -p /sandbox/.config && \
     printf "[Default Applications]\nx-scheme-handler/http=%s\nx-scheme-handler/https=%s\ntext/html=%s\n\n[Added Associations]\nx-scheme-handler/http=%s\nx-scheme-handler/https=%s\n" \
         "$BROWSER_DESKTOP" "$BROWSER_DESKTOP" "$BROWSER_DESKTOP" \

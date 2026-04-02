@@ -14,7 +14,12 @@
 set -euo pipefail
 
 export DISPLAY="${DISPLAY:-:1}"
-export HOME="${HOME:-/sandbox}"
+# OpenShell may inject a host-derived HOME; force a Linux home so Openbox
+# and Cursor resolve config paths under /sandbox correctly.
+export HOME="/sandbox"
+# Openbox uses XDG_CONFIG_HOME to locate its autostart script; set it
+# explicitly so host-derived HOME values can't break OAuth browser spawning.
+export XDG_CONFIG_HOME="/sandbox/.config"
 WORKSPACE="${WORKSPACE:-/sandbox/workspace}"
 VNC_PORT="${VNC_PORT:-5901}"
 NOVNC_PORT="${NOVNC_PORT:-6080}"
@@ -51,7 +56,11 @@ echo "[cursor-desktop] Xvfb ready."
 
 # ── 2. Window manager (openbox — minimal, no desktop environment) ──────────────
 echo "[cursor-desktop] Starting openbox..."
-dbus-launch --exit-with-session openbox-session >/tmp/openbox.log 2>&1 &
+# Force Linux-style HOME/XDG config paths for Openbox. Some hosts inject a
+# non-Linux HOME (e.g. a Windows path) which prevents Openbox from finding
+# /sandbox/.config/openbox/autostart, and then Cursor never launches.
+HOME="/sandbox" XDG_CONFIG_HOME="/sandbox/.config" dbus-launch --exit-with-session openbox-session \
+    >/tmp/openbox.log 2>&1 &
 WM_PID=$!
 
 echo "[cursor-desktop] Waiting for openbox..."

@@ -67,6 +67,12 @@
       <focus>yes</focus>
     </application>
 
+    <!-- Some Chrome builds report a stable-specific WM_CLASS. -->
+    <application name="google-chrome-stable" class="Google-chrome-stable">
+      <layer>above</layer>
+      <focus>yes</focus>
+    </application>
+
     <!-- Generic Chromium / Electron-based browser builds -->
     <application class="Chromium-browser" name="chromium-browser">
       <layer>above</layer>
