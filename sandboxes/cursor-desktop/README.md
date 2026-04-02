@@ -39,7 +39,8 @@ The Openbox session is configured so the VNC view is effectively **Cursor only**
 # From the root of your openshell-community clone:
 openshell sandbox create \
     --from ./sandboxes/cursor-desktop \
-    --forward 6080
+    --forward 6080 \
+    -- /usr/local/bin/startup
 
 # Then open http://localhost:6080/index.html in your browser.
 ```
@@ -88,7 +89,8 @@ From the root of this repo:
 openshell sandbox create \
     --name cursor-desktop \
     --from ./sandboxes/cursor-desktop \
-    --forward 6080
+    --forward 6080 \
+    -- /usr/local/bin/startup
 ```
 
 Optional explicit policy file (overrides defaults for this create):
@@ -98,7 +100,8 @@ openshell sandbox create \
     --name cursor-desktop \
     --from ./sandboxes/cursor-desktop \
     --policy ./sandboxes/cursor-desktop/policy.yaml \
-    --forward 6080
+    --forward 6080 \
+    -- /usr/local/bin/startup
 ```
 
 Then open **`http://localhost:6080/index.html`** (or **`http://127.0.0.1:6080/index.html`**).
@@ -265,3 +268,8 @@ bash sandboxes/cursor-desktop/scripts/local-test.sh
 - The network allow-list covers known Cursor endpoints as of the time of writing. Cursor
   may call additional telemetry or extension endpoints on first launch; use audit mode to
   discover them (see **Policy** section above).
+
+## Further reading
+
+- [NVIDIA OpenShell Developer Guide](https://docs.nvidia.com/openshell/latest/index.html) — gateways, sandboxes, policies, providers, and community sandboxes.
+- [NVIDIA/OpenShell on GitHub](https://github.com/NVIDIA/OpenShell) — source code (Rust), architecture notes, examples, and agent skills (including cluster and CLI troubleshooting).

@@ -57,7 +57,7 @@ RUN apt-get update && \
         libdrm2 libglib2.0-0 libatk1.0-0 libatk-bridge2.0-0 libxkbcommon0 \
         libsecret-1-0 \
         fonts-dejavu fonts-noto-color-emoji \
-        procps net-tools python3 python3-xdg \
+        procps net-tools iproute2 python3 python3-xdg \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Browser ────────────────────────────────────────────────────────────────────
